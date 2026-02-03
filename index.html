@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YVNS | Lift Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="main-page" class="glass-container">
+        
+        <header>
+            <h1 class="yvns-main">YVNS</h1>
+            <div class="yvns-slogan">YOUR VICTORY NEEDS SACRIFICE</div>
+            
+            <div class="meta-row">
+                <div id="live-clock">00:00</div>
+                <div class="divider-vert">|</div>
+                <div id="current-date">Loading...</div>
+            </div>
+
+            <div class="tab-row">
+                <button class="tab-btn active" onclick="switchTab('tracker')">LOG</button>
+                <button class="tab-btn" onclick="switchTab('calculator')">LOADOUT</button>
+                <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
+            </div>
+        </header>
+
+        <div id="tab-tracker" class="tab-content active-tab">
+            <div class="glass-panel">
+                <div class="input-grid">
+                    <div class="full-width">
+                        <label>Category</label>
+                        <select id="equipment" onchange="updateUI()">
+                            <option value="Barbell">Barbell</option>
+                            <option value="Dumbbell">Dumbbell</option>
+                            <option value="Machine">Machine</option>
+                            <option value="Cable">Cable</option>
+                            <option value="Smith Machine">Smith Machine</option>
+                            <option value="Bodyweight">Bodyweight</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Abs">Ab Circuit</option>
+                        </select>
+                    </div>
+
+                    <div class="full-width">
+                        <label>Primary Movement</label>
+                        <input type="text" id="exercise" list="exercise-list" placeholder="Select or Type...">
+                        <datalist id="exercise-list"></datalist>
+                    </div>
+
+                    <div>
+                        <label>Weight (lbs)</label>
+                        <input type="number" id="input-1" placeholder="0">
+                    </div>
+                    <div>
+                        <label>Reps</label>
+                        <input type="number" id="input-2" placeholder="0">
+                    </div>
+
+                    <div id="ss-container" class="full-width ss-hidden">
+                        <div class="ss-connector"><i class="fas fa-link"></i> LINKED SUPERSET</div>
+                        <div class="ss-input-block">
+                            <label>Secondary Movement</label>
+                            <input type="text" id="exercise-ss" list="exercise-list" placeholder="Pairing...">
+                            <div class="ss-stats-grid">
+                                <div><label>Weight</label><input type="number" id="input-1-ss" placeholder="0"></div>
+                                <div><label>Reps</label><input type="number" id="input-2-ss" placeholder="0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button id="ss-toggle-btn" class="toggle-btn" onclick="toggleSS()">+ SS MODE</button>
+                    <button class="action-btn add-btn" onclick="addToSession()">LOG ENTRY</button>
+                </div>
+            </div>
+
+            <div class="session-container">
+                <div class="section-header">
+                    <h3>SESSION LOG</h3>
+                    <span class="count-badge" id="set-count">0</span>
+                </div>
+                <ul id="session-list"><li class="empty-state">Awaiting data input...</li></ul>
+            </div>
+
+            <div class="controls-grid">
+                <button class="action-btn finish-btn" onclick="finishWorkout()">FINISH & SAVE</button>
+                <button class="secondary-btn" onclick="showExportPage()"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
+
+        <div id="tab-calculator" class="tab-content">
+            <div class="glass-panel calc-panel">
+                <div class="total-display">
+                    <span id="calc-total">45</span><small>LBS</small>
+                </div>
+                <div class="plate-visualizer">
+                    <div class="plate-side left" id="bar-plates-left"></div>
+                    <div class="bar-shaft-center"></div>
+                    <div class="plate-side right" id="bar-plates-right"></div>
+                </div>
+                <div class="bar-toggle-row">
+                    <button class="bar-select active-bar" id="btn-bar-45" onclick="setBarWeight(45)">BARBELL (45)</button>
+                    <button class="bar-select" id="btn-bar-25" onclick="setBarWeight(25)">SMITH (25)</button>
+                </div>
+                <div class="plate-bank">
+                    <button class="plate-btn p-45" onclick="addPlate(45)">45</button>
+                    <button class="plate-btn p-35" onclick="addPlate(35)">35</button>
+                    <button class="plate-btn p-25" onclick="addPlate(25)">25</button>
+                    <button class="plate-btn p-10" onclick="addPlate(10)">10</button>
+                    <button class="plate-btn p-5" onclick="addPlate(5)">5</button>
+                    <button class="plate-btn p-25s" onclick="addPlate(2.5)">2.5</button>
+                </div>
+                <div class="divider"></div>
+                <div class="reverse-calc">
+                    <div class="calc-input-row">
+                        <input type="number" id="target-weight" placeholder="Target Weight (e.g. 225)">
+                        <button class="calc-action-btn" onclick="calculateLoadout()">LOAD</button>
+                    </div>
+                </div>
+                <button class="reset-bar-btn" onclick="resetBar()">RESET BAR</button>
+            </div>
+        </div>
+
+        <div id="tab-history" class="tab-content">
+            <div id="history-feed" class="history-list">
+                <div class="empty-state">No saved workouts found.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="export-page" class="glass-container" style="display: none;">
+        <header>
+            <h1 class="yvns-main" style="font-size:32px;">DATA MANAGEMENT</h1>
+            <p class="yvns-slogan" style="color:#666;">EXPORT PERFORMANCE METRICS</p>
+        </header>
+
+        <div class="glass-panel menu-panel">
+            <div class="extraction-grid">
+                <button class="extract-btn" onclick="copyForSheets()">
+                    <div class="ex-icon"><i class="fas fa-table"></i></div>
+                    <div class="ex-label">COPY FOR SHEETS</div>
+                </button>
+                <button class="extract-btn" onclick="copyForText()">
+                    <div class="ex-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="ex-label">COPY AS TEXT</div>
+                </button>
+                <button class="extract-btn" onclick="exportCSV()">
+                    <div class="ex-icon"><i class="fas fa-download"></i></div>
+                    <div class="ex-label">DOWNLOAD CSV</div>
+                </button>
+            </div>
+            
+            <div class="divider"></div>
+
+            <button class="menu-action-btn delete-btn" onclick="wipeAllData()">
+                WIPE ALL HISTORY
+            </button>
+        </div>
+        
+        <button class="menu-action-btn back-btn" onclick="showMainPage()">RETURN TO TRACKER</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

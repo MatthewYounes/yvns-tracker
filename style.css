@@ -1,0 +1,166 @@
+/* --- VARIABLES --- */
+:root {
+    --c-blue:     #81D4FA;
+    --c-glow:     rgba(129, 212, 250, 0.4);
+    --c-dark:     #0A0A0A;
+    --c-panel:    rgba(20, 20, 20, 0.9);
+    --c-border:   rgba(255, 255, 255, 0.1);
+    --c-text:     #E0E0E0;
+    
+    /* Plate Colors */
+    --p-45: #81D4FA; --p-35: #FFD700; --p-25: #00E676;
+    --p-10: #EEEEEE; --p-5:  #FF5252; --p-2:  #777777;
+}
+
+body {
+    background: radial-gradient(circle at top, #1a1a1a, #050505);
+    color: var(--c-text);
+    font-family: 'Roboto', sans-serif;
+    margin: 0; padding: 20px;
+    display: flex; justify-content: center;
+    min-height: 100vh;
+}
+
+.glass-container { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 15px; margin-top: 10px; animation: fadeIn 0.5s ease-out; }
+.glass-panel {
+    background: var(--c-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--c-border); border-radius: 12px; padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+/* --- HEADER --- */
+header { text-align: center; margin-bottom: 5px; }
+.yvns-main { margin: 0; font-family: 'Bebas Neue'; font-size: 48px; color: #FFF; line-height: 0.8; letter-spacing: 3px; }
+.yvns-slogan { font-size: 11px; letter-spacing: 3px; color: var(--c-blue); font-weight: bold; margin: 8px 0 15px 0; text-transform: uppercase; text-shadow: 0 0 10px var(--c-glow); }
+.meta-row { display: flex; justify-content: center; gap: 10px; font-family: monospace; font-size: 12px; color: #666; margin-bottom: 20px; }
+.divider-vert { color: #333; }
+
+/* --- TABS --- */
+.tab-row { display: flex; gap: 10px; }
+.tab-btn {
+    flex: 1; background: #000; border: 1px solid #333; color: #666;
+    padding: 12px; font-family: 'Bebas Neue'; font-size: 16px; letter-spacing: 2px;
+    cursor: pointer; border-radius: 6px; transition: 0.3s;
+}
+.tab-btn.active { border-color: var(--c-blue); color: var(--c-blue); background: rgba(129,212,250,0.05); }
+.tab-content { display: none; }
+.active-tab { display: block; animation: fadeIn 0.3s; }
+
+/* --- TRACKER UI --- */
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.full-width { grid-column: span 2; }
+label { display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: #888; margin-bottom: 6px; letter-spacing: 1px; }
+input, select { width: 100%; padding: 14px; background: #000; border: 1px solid #333; border-radius: 6px; color: white; font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s; font-family: 'Roboto', sans-serif; }
+input:focus, select:focus { border-color: var(--c-blue); box-shadow: 0 0 10px var(--c-glow); }
+
+.action-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 20px; }
+.toggle-btn { background: transparent; border: 1px solid #444; color: #888; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
+.ss-active-btn { border-color: var(--c-blue); color: var(--c-blue); background: rgba(129, 212, 250, 0.05); }
+.add-btn { background: var(--c-blue); color: #000; font-family: 'Bebas Neue'; font-size: 18px; letter-spacing: 2px; width: 100%; border: none; padding: 16px; border-radius: 6px; cursor: pointer;}
+.finish-btn { background: #E0E0E0; color: #000; font-family: 'Bebas Neue'; font-size: 20px; letter-spacing: 2px; width: 100%; border: none; padding: 16px; border-radius: 6px; cursor: pointer;}
+
+/* Session List (FIXED SPACING HERE) */
+.session-container {
+    background: var(--c-panel); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--c-border); border-radius: 12px; padding: 25px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    margin-top: 20px; /* Spacing fix */
+}
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.section-header h3 { margin: 0; font-size: 12px; color: #666; letter-spacing: 1px; }
+.count-badge { background: #222; padding: 2px 8px; border-radius: 4px; font-size: 10px; color: var(--c-blue); }
+ul { list-style: none; padding: 0; margin: 0; }
+li {
+    background: rgba(0,0,0,0.3); border-left: 3px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 4px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.li-content { flex-grow: 1; }
+.del-btn { background: none; border: none; color: #444; cursor: pointer; padding: 10px; font-size: 14px; transition: 0.2s; }
+.del-btn:hover { color: #FF5252; }
+.set-main { font-weight: 700; font-size: 16px; font-family: 'Bebas Neue'; letter-spacing: 1px; }
+.set-sub { font-size: 12px; color: var(--c-blue); font-family: monospace; }
+.ss-tag { font-size: 10px; background: var(--c-blue); color: #000; padding: 1px 4px; border-radius: 2px; margin-right: 5px; }
+
+.ss-hidden { max-height: 0; opacity: 0; border: none !important; margin: 0 !important; overflow: hidden; transition: 0.3s; }
+.ss-input-block { padding: 15px; background: rgba(129,212,250,0.02); border: 1px solid rgba(129,212,250,0.1); border-radius: 6px; margin-top: 10px; }
+.ss-connector { color: var(--c-blue); font-size: 10px; text-align: center; font-weight: bold; }
+.ss-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+/* --- CALCULATOR --- */
+.total-display { font-family: 'Bebas Neue'; font-size: 56px; color: #FFF; line-height: 1; text-align: center; margin-bottom: 20px; }
+.total-display small { font-size: 16px; color: #666; }
+
+.plate-visualizer {
+    background: #000; border: 1px solid #222; border-radius: 8px;
+    padding: 30px 10px; margin-bottom: 20px;
+    position: relative; height: 140px;
+    display: flex; align-items: center; justify-content: center;
+}
+.bar-shaft-center { width: 100%; height: 12px; background: #555; position: absolute; z-index: 1; border-radius: 2px; }
+
+.plate-side { display: flex; align-items: center; gap: 2px; position: absolute; z-index: 2; height: 100%; }
+.left { right: 50%; flex-direction: row; justify-content: flex-end; padding-right: 15px; border-right: 4px solid #888; }
+.right { left: 50%; flex-direction: row; justify-content: flex-start; padding-left: 15px; border-left: 4px solid #888; }
+
+.v-plate { width: 10px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.5); animation: slideOn 0.2s ease-out; }
+.vp-45 { height: 90px; background: var(--p-45); box-shadow: 0 0 10px var(--p-45); }
+.vp-35 { height: 75px; background: var(--p-35); }
+.vp-25 { height: 65px; background: var(--p-25); }
+.vp-10 { height: 50px; background: var(--p-10); }
+.vp-5  { height: 40px; background: var(--p-5); }
+.vp-2  { height: 30px; background: var(--p-2); }
+
+.bar-toggle-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.bar-select { flex: 1; padding: 10px; background: #000; border: 1px solid #333; color: #555; font-weight: bold; font-size: 10px; cursor: pointer; border-radius: 4px; }
+.active-bar { border-color: var(--c-blue); color: #fff; background: #111; }
+
+.plate-bank { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.plate-btn {
+    padding: 15px 0; background: #111; border: 1px solid #333; color: #fff;
+    font-weight: bold; font-family: 'Bebas Neue'; font-size: 18px;
+    border-radius: 50%; width: 60px; height: 60px; margin: 0 auto;
+    cursor: pointer; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+.plate-btn:active { transform: scale(0.95); }
+.p-45 { border-color: var(--p-45); color: var(--p-45); }
+.p-35 { border-color: var(--p-35); color: var(--p-35); }
+.p-25 { border-color: var(--p-25); color: var(--p-25); }
+.p-10 { border-color: var(--p-10); color: var(--p-10); }
+.p-5  { border-color: var(--p-5);  color: var(--p-5); }
+.p-25s{ border-color: var(--p-2);  color: var(--p-2); }
+
+.reverse-calc { margin-bottom: 10px; }
+.calc-input-row { display: flex; gap: 10px; }
+.calc-action-btn { background: var(--c-blue); color: #000; border: none; font-weight: bold; padding: 0 20px; cursor: pointer; border-radius: 6px; }
+.reset-bar-btn { width: 100%; padding: 12px; background: #222; color: #888; border: 1px solid #333; cursor: pointer; font-size: 12px; letter-spacing: 1px; }
+
+/* --- EXPORT MENU STYLES --- */
+.menu-panel { padding: 30px; }
+.extraction-grid { display: flex; flex-direction: column; gap: 12px; }
+.extract-btn {
+    display: flex; align-items: center; gap: 15px;
+    background: #000; border: 1px solid #333;
+    padding: 15px; border-radius: 6px; cursor: pointer; width: 100%;
+    transition: 0.2s;
+}
+.extract-btn:hover { border-color: var(--c-blue); background: rgba(129,212,250,0.05); }
+.ex-icon { width: 30px; text-align: center; color: var(--c-blue); font-size: 18px; }
+.ex-label { font-family: 'Bebas Neue'; font-size: 18px; color: #fff; letter-spacing: 1px; }
+
+.controls-grid { display: grid; grid-template-columns: 3fr 1fr; gap: 15px; margin-top: 15px; }
+.secondary-btn { background: #1a1a1a; color: #888; border: 1px solid #333; border-radius: 6px; cursor: pointer; width: 100%;}
+.divider { height: 1px; background: #222; margin: 25px 0; }
+.menu-action-btn { width: 100%; padding: 16px; border-radius: 6px; font-family: 'Bebas Neue'; font-size: 18px; letter-spacing: 1px; cursor: pointer; border: none; }
+.delete-btn { background: rgba(255,0,0,0.1); color: #FF5252; border: 1px solid rgba(255,0,0,0.3); }
+.back-btn { background: #1a1a1a; color: #888; border: 1px solid #333; margin-top: 10px; }
+
+/* --- HISTORY STYLES --- */
+.history-card { background: rgba(0,0,0,0.3); border-left: 3px solid #333; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+.h-header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-family: 'Bebas Neue'; color: var(--c-blue); letter-spacing: 1px; font-size: 18px; }
+.h-body { font-size: 12px; color: #ccc; }
+.h-row { margin-bottom: 4px; }
+.h-del { color: #555; cursor: pointer; font-size: 14px; }
+.h-del:hover { color: #FF5252; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideOn { from { transform: scaleY(0); } to { transform: scaleY(1); } }
