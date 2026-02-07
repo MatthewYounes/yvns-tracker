@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>YVNS | Lift Tracker</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YVNS">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/69/69840.png">
+
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -48,27 +55,27 @@
 
                     <div class="full-width">
                         <label>Primary Movement</label>
-                        <input type="text" id="exercise" list="exercise-list" placeholder="Select or Type...">
+                        <input type="text" id="exercise" list="exercise-list" placeholder="Select or Type..." oninput="autoSaveDraft()">
                         <datalist id="exercise-list"></datalist>
                     </div>
 
                     <div>
-                        <label>Weight (lbs)</label>
-                        <input type="number" id="input-1" placeholder="0">
+                        <label id="lbl-weight">Weight (lbs)</label>
+                        <input type="number" id="input-1" placeholder="0" oninput="autoSaveDraft()">
                     </div>
                     <div>
-                        <label>Reps</label>
-                        <input type="number" id="input-2" placeholder="0">
+                        <label id="lbl-reps">Reps</label>
+                        <input type="number" id="input-2" placeholder="0" oninput="autoSaveDraft()">
                     </div>
 
                     <div id="ss-container" class="full-width ss-hidden">
                         <div class="ss-connector"><i class="fas fa-link"></i> LINKED SUPERSET</div>
                         <div class="ss-input-block">
                             <label>Secondary Movement</label>
-                            <input type="text" id="exercise-ss" list="exercise-list" placeholder="Pairing...">
+                            <input type="text" id="exercise-ss" list="exercise-list" placeholder="Pairing..." oninput="autoSaveDraft()">
                             <div class="ss-stats-grid">
-                                <div><label>Weight</label><input type="number" id="input-1-ss" placeholder="0"></div>
-                                <div><label>Reps</label><input type="number" id="input-2-ss" placeholder="0"></div>
+                                <div><label>Weight</label><input type="number" id="input-1-ss" placeholder="0" oninput="autoSaveDraft()"></div>
+                                <div><label>Reps</label><input type="number" id="input-2-ss" placeholder="0" oninput="autoSaveDraft()"></div>
                             </div>
                         </div>
                     </div>
@@ -76,16 +83,16 @@
 
                 <div class="action-row">
                     <button id="ss-toggle-btn" class="toggle-btn" onclick="toggleSS()">+ SS MODE</button>
-                    <button class="action-btn add-btn" onclick="addToSession()">LOG ENTRY</button>
+                    <button class="action-btn add-btn" onclick="addToSession()">LOG SET</button>
                 </div>
             </div>
 
             <div class="session-container">
                 <div class="section-header">
-                    <h3>SESSION LOG</h3>
+                    <h3>CURRENT SESSION</h3>
                     <span class="count-badge" id="set-count">0</span>
                 </div>
-                <ul id="session-list"><li class="empty-state">Awaiting data input...</li></ul>
+                <ul id="session-list"><li class="empty-state">Start lifting...</li></ul>
             </div>
 
             <div class="controls-grid">
