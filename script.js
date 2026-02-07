@@ -18,6 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
     updateClock(); 
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' });
+    
+    // Load Saved Draft Data (So you don't lose progress if you close app)
+    loadDraft();
+    // Load Session Data
+    const savedSession = JSON.parse(localStorage.getItem('yvns_active_session'));
+    if(savedSession) {
+        currentSession = savedSession;
+        renderSession();
+    }
+    
     updateUI(); 
     renderCalculator(); 
     renderHistory();
@@ -33,7 +43,6 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active-tab');
     
-    // Highlight correct button
     if(tab==='tracker') document.querySelectorAll('.tab-btn')[0].classList.add('active');
     else if(tab==='calculator') document.querySelectorAll('.tab-btn')[1].classList.add('active');
     else document.querySelectorAll('.tab-btn')[2].classList.add('active');
@@ -43,6 +52,28 @@ function switchTab(tab) {
 function updateUI() {
     const equip = document.getElementById('equipment').value;
     const list = document.getElementById('exercise-list');
+    
+    // Dynamic Labels Logic (Requirement 2)
+    const lblW = document.getElementById('lbl-weight');
+    const inpW = document.getElementById('input-1');
+    const lblR = document.getElementById('lbl-reps');
+    
+    if (equip === 'Dumbbell') {
+        lblW.innerText = "Weight (Per Hand)";
+        inpW.placeholder = "lbs";
+    } else if (equip === 'Cardio') {
+        lblW.innerText = "Duration";
+        inpW.placeholder = "Minutes";
+        lblR.innerText = "Distance / Cals";
+    } else if (equip === 'Bodyweight') {
+        lblW.innerText = "Added Weight";
+        inpW.placeholder = "0 if none";
+    } else {
+        lblW.innerText = "Weight (lbs)";
+        inpW.placeholder = "0";
+        lblR.innerText = "Reps";
+    }
+
     list.innerHTML = "";
     if (LIBRARY[equip]) {
         LIBRARY[equip].forEach(ex => {
@@ -51,6 +82,19 @@ function updateUI() {
             list.appendChild(option);
         });
     }
+}
+
+function autoSaveDraft() {
+    // Saves input text every time you type (Requirement 6)
+    localStorage.setItem('draft_ex', document.getElementById('exercise').value);
+    localStorage.setItem('draft_w', document.getElementById('input-1').value);
+    localStorage.setItem('draft_r', document.getElementById('input-2').value);
+}
+
+function loadDraft() {
+    if(localStorage.getItem('draft_ex')) document.getElementById('exercise').value = localStorage.getItem('draft_ex');
+    if(localStorage.getItem('draft_w')) document.getElementById('input-1').value = localStorage.getItem('draft_w');
+    if(localStorage.getItem('draft_r')) document.getElementById('input-2').value = localStorage.getItem('draft_r');
 }
 
 function toggleSS() {
@@ -88,13 +132,19 @@ function addToSession() {
     }
 
     currentSession.push(entry);
+    
+    // Save Session immediately so refresh doesn't kill it
+    localStorage.setItem('yvns_active_session', JSON.stringify(currentSession));
+    
     renderSession();
-    clearInputs();
+    
+    // NOTE: Removed "clearInputs()" so you can quick-edit (Requirement 3)
 }
 
 function deleteEntry(index) {
     if(confirm("Remove this entry?")) {
         currentSession.splice(index, 1);
+        localStorage.setItem('yvns_active_session', JSON.stringify(currentSession));
         renderSession();
     }
 }
@@ -105,7 +155,7 @@ function renderSession() {
     list.innerHTML = "";
     badge.innerText = currentSession.length;
 
-    if (currentSession.length === 0) { list.innerHTML = `<li class="empty-state">Awaiting data input...</li>`; return; }
+    if (currentSession.length === 0) { list.innerHTML = `<li class="empty-state">Start lifting...</li>`; return; }
 
     currentSession.slice().reverse().forEach((entry, reverseIdx) => {
         let realIdx = currentSession.length - 1 - reverseIdx;
@@ -124,19 +174,20 @@ function renderSession() {
     });
 }
 
-function clearInputs() {
-    ['exercise', 'input-1', 'input-2', 'exercise-ss', 'input-1-ss', 'input-2-ss'].forEach(id => document.getElementById(id).value = '');
-}
-
 function finishWorkout() {
     if (currentSession.length === 0) return alert("Empty.");
     const history = JSON.parse(localStorage.getItem('yvns_tracker_v2')) || [];
-    history.push({ date: new Date().toLocaleDateString(), data: currentSession });
+    history.push({ date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(), data: currentSession });
+    
     localStorage.setItem('yvns_tracker_v2', JSON.stringify(history));
+    
+    // Clear Active Session
     currentSession = [];
+    localStorage.removeItem('yvns_active_session');
+    
     renderSession();
     renderHistory();
-    alert("SAVED.");
+    alert("SAVED TO HISTORY.");
 }
 
 // --- CALCULATOR ---
@@ -148,7 +199,7 @@ function setBarWeight(w) {
 }
 function addPlate(weight) {
     plateStack.push(weight);
-    plateStack.sort((a,b) => b - a); // Sort heavy first (for visual stack)
+    plateStack.sort((a,b) => b - a);
     renderCalculator();
 }
 function resetBar() { plateStack = []; renderCalculator(); }
@@ -167,16 +218,14 @@ function renderCalculator() {
     let total = barWeight + (plateStack.reduce((a,b)=>a+b,0)*2);
     document.getElementById('calc-total').innerText = total;
     
-    // LEFT: Reverse array so LARGEST is LAST (closest to center)
     const left = document.getElementById('bar-plates-left'); left.innerHTML = "";
     [...plateStack].reverse().forEach(p => { left.innerHTML += `<div class="v-plate vp-${Math.floor(p)==2?'2':p}"></div>`; });
     
-    // RIGHT: Normal array so LARGEST is FIRST (closest to center)
     const right = document.getElementById('bar-plates-right'); right.innerHTML = "";
     plateStack.forEach(p => { right.innerHTML += `<div class="v-plate vp-${Math.floor(p)==2?'2':p}"></div>`; });
 }
 
-// --- HISTORY & EXPORT (FIXED) ---
+// --- HISTORY & EXPORT ---
 function renderHistory() {
     const feed = document.getElementById('history-feed');
     const history = JSON.parse(localStorage.getItem('yvns_tracker_v2')) || [];
@@ -207,7 +256,6 @@ function delHist(idx) {
 function copyForSheets() {
     const history = JSON.parse(localStorage.getItem('yvns_tracker_v2'));
     if(!history) return alert("No History");
-    // Header Row
     let tsv = "Date\tCategory\tWorkout\tWeight\tReps\n";
     history.forEach(log => {
         log.data.forEach(e => {
