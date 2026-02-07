@@ -53,14 +53,16 @@ function updateUI() {
     const equip = document.getElementById('equipment').value;
     const list = document.getElementById('exercise-list');
     
-    // Dynamic Labels Logic (Requirement 2)
+    // Dynamic Labels Logic
     const lblW = document.getElementById('lbl-weight');
     const inpW = document.getElementById('input-1');
     const lblR = document.getElementById('lbl-reps');
+    const inpR = document.getElementById('input-2');
     
     if (equip === 'Dumbbell') {
         lblW.innerText = "Weight (Per Hand)";
         inpW.placeholder = "lbs";
+        lblR.innerText = "Reps";
     } else if (equip === 'Cardio') {
         lblW.innerText = "Duration";
         inpW.placeholder = "Minutes";
@@ -68,7 +70,14 @@ function updateUI() {
     } else if (equip === 'Bodyweight') {
         lblW.innerText = "Added Weight";
         inpW.placeholder = "0 if none";
+        lblR.innerText = "Reps";
+    } else if (equip === 'Abs') {
+        // NEW ABS LOGIC HERE
+        lblW.innerText = "Reps or Time";
+        inpW.placeholder = "e.g. 20 or 45s";
+        lblR.innerText = "Sets / Rounds";
     } else {
+        // Default (Barbell, Machine, etc)
         lblW.innerText = "Weight (lbs)";
         inpW.placeholder = "0";
         lblR.innerText = "Reps";
