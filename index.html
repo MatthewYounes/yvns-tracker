@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YVNS | Lift Tracker</title>
+    <title>YVNS | Lift & Fuel Tracker</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,6 +31,7 @@
 
             <div class="tab-row">
                 <button class="tab-btn active" onclick="switchTab('tracker')">LOG</button>
+                <button class="tab-btn" onclick="switchTab('nutrition')">FUEL</button>
                 <button class="tab-btn" onclick="switchTab('calculator')">LOADOUT</button>
                 <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
             </div>
@@ -101,6 +102,55 @@
             </div>
         </div>
 
+        <div id="tab-nutrition" class="tab-content">
+            <div class="glass-panel">
+                <div class="input-grid">
+                    <div class="full-width">
+                        <label>Meal / Item</label>
+                        <input type="text" id="macro-item" placeholder="e.g. Post-Workout Shake">
+                    </div>
+                    <div>
+                        <label>Calories</label>
+                        <input type="number" id="macro-cals" placeholder="0">
+                    </div>
+                    <div>
+                        <label>Protein (g)</label>
+                        <input type="number" id="macro-pro" placeholder="0">
+                    </div>
+                    <div>
+                        <label>Carbs (g)</label>
+                        <input type="number" id="macro-crb" placeholder="0">
+                    </div>
+                    <div>
+                        <label>Fats (g)</label>
+                        <input type="number" id="macro-fat" placeholder="0">
+                    </div>
+                </div>
+                <div class="action-row" style="grid-template-columns: 1fr; margin-top:15px;">
+                    <button class="action-btn add-btn" onclick="logMacro()">LOG FUEL</button>
+                </div>
+            </div>
+
+            <div class="session-container">
+                <div class="section-header">
+                    <h3>TODAY'S INTAKE</h3>
+                </div>
+                <div class="macro-totals-grid">
+                    <div class="m-box"><div class="m-val" id="tot-cals">0</div><div class="m-lbl">CALS</div></div>
+                    <div class="m-box"><div class="m-val" id="tot-pro">0</div><div class="m-lbl">PRO</div></div>
+                    <div class="m-box"><div class="m-val" id="tot-crb">0</div><div class="m-lbl">CRB</div></div>
+                    <div class="m-box"><div class="m-val" id="tot-fat">0</div><div class="m-lbl">FAT</div></div>
+                </div>
+                <div class="divider" style="margin: 15px 0;"></div>
+                <ul id="macro-list"><li class="empty-state">No fuel logged yet...</li></ul>
+            </div>
+
+            <div class="controls-grid">
+                <button class="action-btn finish-btn" onclick="finishNutritionDay()">FINISH DAY & SAVE</button>
+                <button class="secondary-btn" onclick="showExportPage()"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
+
         <div id="tab-calculator" class="tab-content">
             <div class="glass-panel calc-panel">
                 <div class="total-display">
@@ -135,8 +185,12 @@
         </div>
 
         <div id="tab-history" class="tab-content">
+            <div class="bar-toggle-row" style="margin-bottom: 15px;">
+                <button class="bar-select active-bar" id="btn-hist-lifts" onclick="switchHistory('lifts')">LIFTS</button>
+                <button class="bar-select" id="btn-hist-fuel" onclick="switchHistory('fuel')">FUEL</button>
+            </div>
             <div id="history-feed" class="history-list">
-                <div class="empty-state">No saved workouts found.</div>
+                <div class="empty-state">No history found.</div>
             </div>
         </div>
 
@@ -151,16 +205,16 @@
         <div class="glass-panel menu-panel">
             <div class="extraction-grid">
                 <button class="extract-btn" onclick="copyForSheets()">
-                    <div class="ex-icon"><i class="fas fa-table"></i></div>
-                    <div class="ex-label">COPY FOR SHEETS</div>
+                    <div class="ex-icon"><i class="fas fa-dumbbell"></i></div>
+                    <div class="ex-label">COPY LIFTS (SHEETS)</div>
                 </button>
-                <button class="extract-btn" onclick="copyForText()">
-                    <div class="ex-icon"><i class="fas fa-file-alt"></i></div>
-                    <div class="ex-label">COPY AS TEXT</div>
+                <button class="extract-btn" onclick="copyMacrosForSheets()">
+                    <div class="ex-icon"><i class="fas fa-fire"></i></div>
+                    <div class="ex-label">COPY FUEL (SHEETS)</div>
                 </button>
                 <button class="extract-btn" onclick="exportCSV()">
                     <div class="ex-icon"><i class="fas fa-download"></i></div>
-                    <div class="ex-label">DOWNLOAD CSV</div>
+                    <div class="ex-label">DOWNLOAD LIFTS CSV</div>
                 </button>
             </div>
             
@@ -175,5 +229,62 @@
     </div>
 
     <script src="script.js"></script>
+    <div class="fab-container">
+        <button class="fab-btn" onclick="openModal('timer-modal')"><i class="fas fa-stopwatch"></i></button>
+        <button class="calc-fab-btn" onclick="openModal('calc-modal')"><i class="fas fa-calculator"></i></button>
+    </div>
+
+    <div id="timer-modal" class="modal-overlay" style="display:none;">
+        <div class="glass-panel modal-panel">
+            <div class="modal-header">
+                <h2>REST TIMER</h2>
+                <button class="close-btn" onclick="closeModal('timer-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="timer-display" id="timer-display">00:00</div>
+            <div class="timer-quick-adds">
+                <button onclick="addTime(30)">+30s</button>
+                <button onclick="addTime(60)">+1m</button>
+                <button onclick="addTime(120)">+2m</button>
+            </div>
+            <div class="action-row" style="grid-template-columns: 1fr 1fr;">
+                <button class="secondary-btn" onclick="resetTimer()">RESET</button>
+                <button class="action-btn add-btn" id="timer-start-btn" onclick="toggleTimer()">START</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="calc-modal" class="modal-overlay" style="display:none;">
+        <div class="glass-panel modal-panel">
+            <div class="modal-header">
+                <h2>MATH</h2>
+                <button class="close-btn" onclick="closeModal('calc-modal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="calc-screen" id="calc-screen">0</div>
+            <div class="basic-calc-grid">
+                <button class="calc-btn dark" onclick="calcPress('C')">C</button>
+                <button class="calc-btn dark" onclick="calcPress('DEL')">DEL</button>
+                <button class="calc-btn dark" onclick="calcPress('/')">/</button>
+                <button class="calc-btn dark" onclick="calcPress('*')">x</button>
+                
+                <button class="calc-btn" onclick="calcPress('7')">7</button>
+                <button class="calc-btn" onclick="calcPress('8')">8</button>
+                <button class="calc-btn" onclick="calcPress('9')">9</button>
+                <button class="calc-btn dark" onclick="calcPress('-')">-</button>
+                
+                <button class="calc-btn" onclick="calcPress('4')">4</button>
+                <button class="calc-btn" onclick="calcPress('5')">5</button>
+                <button class="calc-btn" onclick="calcPress('6')">6</button>
+                <button class="calc-btn dark" onclick="calcPress('+')">+</button>
+                
+                <button class="calc-btn" onclick="calcPress('1')">1</button>
+                <button class="calc-btn" onclick="calcPress('2')">2</button>
+                <button class="calc-btn" onclick="calcPress('3')">3</button>
+                <button class="calc-btn blue row-span-2" onclick="calcPress('=')">=</button>
+                
+                <button class="calc-btn col-span-2" onclick="calcPress('0')">0</button>
+                <button class="calc-btn" onclick="calcPress('.')">.</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
