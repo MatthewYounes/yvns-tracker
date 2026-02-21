@@ -1,7 +1,9 @@
 let currentSession = [];
+let currentMacros = [];
 let ssMode = false;
 let barWeight = 45;
 let plateStack = []; 
+let currentHistoryView = 'lifts';
 
 const LIBRARY = {
     "Barbell": ["Bench Press", "Squat", "Deadlift", "Overhead Press", "Bent Over Row", "Incline Bench", "Front Squat", "Hip Thrust"],
@@ -19,14 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock(); 
     document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' });
     
-    // Load Saved Draft Data (So you don't lose progress if you close app)
     loadDraft();
-    // Load Session Data
+    
     const savedSession = JSON.parse(localStorage.getItem('yvns_active_session'));
-    if(savedSession) {
-        currentSession = savedSession;
-        renderSession();
-    }
+    if(savedSession) { currentSession = savedSession; renderSession(); }
+
+    const savedMacros = JSON.parse(localStorage.getItem('yvns_active_macros'));
+    if(savedMacros) { currentMacros = savedMacros; renderMacros(); }
     
     updateUI(); 
     renderCalculator(); 
@@ -43,9 +44,9 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active-tab');
     
-    if(tab==='tracker') document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    else if(tab==='calculator') document.querySelectorAll('.tab-btn')[1].classList.add('active');
-    else document.querySelectorAll('.tab-btn')[2].classList.add('active');
+    const tabs = ['tracker', 'nutrition', 'calculator', 'history'];
+    const index = tabs.indexOf(tab);
+    document.querySelectorAll('.tab-btn')[index].classList.add('active');
 }
 
 // --- TRACKER LOGIC ---
@@ -53,35 +54,15 @@ function updateUI() {
     const equip = document.getElementById('equipment').value;
     const list = document.getElementById('exercise-list');
     
-    // Dynamic Labels Logic
     const lblW = document.getElementById('lbl-weight');
     const inpW = document.getElementById('input-1');
     const lblR = document.getElementById('lbl-reps');
-    const inpR = document.getElementById('input-2');
     
-    if (equip === 'Dumbbell') {
-        lblW.innerText = "Weight (Per Hand)";
-        inpW.placeholder = "lbs";
-        lblR.innerText = "Reps";
-    } else if (equip === 'Cardio') {
-        lblW.innerText = "Duration";
-        inpW.placeholder = "Minutes";
-        lblR.innerText = "Distance / Cals";
-    } else if (equip === 'Bodyweight') {
-        lblW.innerText = "Added Weight";
-        inpW.placeholder = "0 if none";
-        lblR.innerText = "Reps";
-    } else if (equip === 'Abs') {
-        // NEW ABS LOGIC HERE
-        lblW.innerText = "Reps or Time";
-        inpW.placeholder = "e.g. 20 or 45s";
-        lblR.innerText = "Sets / Rounds";
-    } else {
-        // Default (Barbell, Machine, etc)
-        lblW.innerText = "Weight (lbs)";
-        inpW.placeholder = "0";
-        lblR.innerText = "Reps";
-    }
+    if (equip === 'Dumbbell') { lblW.innerText = "Weight (Per Hand)"; inpW.placeholder = "lbs"; lblR.innerText = "Reps"; }
+    else if (equip === 'Cardio') { lblW.innerText = "Duration"; inpW.placeholder = "Minutes"; lblR.innerText = "Distance / Cals"; }
+    else if (equip === 'Bodyweight') { lblW.innerText = "Added Weight"; inpW.placeholder = "0 if none"; lblR.innerText = "Reps"; }
+    else if (equip === 'Abs') { lblW.innerText = "Reps or Time"; inpW.placeholder = "e.g. 20 or 45s"; lblR.innerText = "Sets / Rounds"; }
+    else { lblW.innerText = "Weight (lbs)"; inpW.placeholder = "0"; lblR.innerText = "Reps"; }
 
     list.innerHTML = "";
     if (LIBRARY[equip]) {
@@ -94,7 +75,6 @@ function updateUI() {
 }
 
 function autoSaveDraft() {
-    // Saves input text every time you type (Requirement 6)
     localStorage.setItem('draft_ex', document.getElementById('exercise').value);
     localStorage.setItem('draft_w', document.getElementById('input-1').value);
     localStorage.setItem('draft_r', document.getElementById('input-2').value);
@@ -141,13 +121,8 @@ function addToSession() {
     }
 
     currentSession.push(entry);
-    
-    // Save Session immediately so refresh doesn't kill it
     localStorage.setItem('yvns_active_session', JSON.stringify(currentSession));
-    
     renderSession();
-    
-    // NOTE: Removed "clearInputs()" so you can quick-edit (Requirement 3)
 }
 
 function deleteEntry(index) {
@@ -189,14 +164,93 @@ function finishWorkout() {
     history.push({ date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(), data: currentSession });
     
     localStorage.setItem('yvns_tracker_v2', JSON.stringify(history));
-    
-    // Clear Active Session
     currentSession = [];
     localStorage.removeItem('yvns_active_session');
     
     renderSession();
-    renderHistory();
+    if(currentHistoryView === 'lifts') renderHistory();
     alert("SAVED TO HISTORY.");
+}
+
+// --- NUTRITION (FUEL) LOGIC ---
+function logMacro() {
+    const item = document.getElementById('macro-item').value || 'Meal / Snack';
+    const cals = parseInt(document.getElementById('macro-cals').value) || 0;
+    const pro = parseInt(document.getElementById('macro-pro').value) || 0;
+    const crb = parseInt(document.getElementById('macro-crb').value) || 0;
+    const fat = parseInt(document.getElementById('macro-fat').value) || 0;
+
+    if (cals === 0 && pro === 0 && crb === 0 && fat === 0) return alert("Enter macro values.");
+
+    currentMacros.push({ id: Date.now(), item, cals, pro, crb, fat });
+    localStorage.setItem('yvns_active_macros', JSON.stringify(currentMacros));
+    
+    document.getElementById('macro-item').value = '';
+    document.getElementById('macro-cals').value = '';
+    document.getElementById('macro-pro').value = '';
+    document.getElementById('macro-crb').value = '';
+    document.getElementById('macro-fat').value = '';
+    
+    renderMacros();
+}
+
+function deleteMacro(index) {
+    if(confirm("Remove this entry?")) {
+        currentMacros.splice(index, 1);
+        localStorage.setItem('yvns_active_macros', JSON.stringify(currentMacros));
+        renderMacros();
+    }
+}
+
+function renderMacros() {
+    const list = document.getElementById('macro-list');
+    let tCals = 0, tPro = 0, tCrb = 0, tFat = 0;
+    list.innerHTML = "";
+
+    if (currentMacros.length === 0) { list.innerHTML = `<li class="empty-state">No fuel logged yet...</li>`; } 
+    else {
+        currentMacros.slice().reverse().forEach((m, reverseIdx) => {
+            let realIdx = currentMacros.length - 1 - reverseIdx;
+            tCals += m.cals; tPro += m.pro; tCrb += m.crb; tFat += m.fat;
+            
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="li-content">
+                    <div class="set-main">${m.item}</div>
+                    <div class="set-sub" style="color:#aaa;">${m.cals} Cal | ${m.pro}P / ${m.crb}C / ${m.fat}F</div>
+                </div>
+                <button class="del-btn" onclick="deleteMacro(${realIdx})"><i class="fas fa-times"></i></button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    document.getElementById('tot-cals').innerText = tCals;
+    document.getElementById('tot-pro').innerText = tPro + "g";
+    document.getElementById('tot-crb').innerText = tCrb + "g";
+    document.getElementById('tot-fat').innerText = tFat + "g";
+}
+
+function finishNutritionDay() {
+    if (currentMacros.length === 0) return alert("Empty.");
+    const history = JSON.parse(localStorage.getItem('yvns_macro_history')) || [];
+    
+    let tCals = 0, tPro = 0, tCrb = 0, tFat = 0;
+    currentMacros.forEach(m => { tCals += m.cals; tPro += m.pro; tCrb += m.crb; tFat += m.fat; });
+    
+    history.push({ 
+        date: new Date().toLocaleDateString(), 
+        totals: { cals: tCals, pro: tPro, crb: tCrb, fat: tFat },
+        data: currentMacros 
+    });
+    
+    localStorage.setItem('yvns_macro_history', JSON.stringify(history));
+    currentMacros = [];
+    localStorage.removeItem('yvns_active_macros');
+    
+    renderMacros();
+    if(currentHistoryView === 'fuel') renderHistory();
+    alert("DAY COMPLETED & SAVED.");
 }
 
 // --- CALCULATOR ---
@@ -206,11 +260,7 @@ function setBarWeight(w) {
     document.getElementById('btn-bar-25').classList.toggle('active-bar', w === 25);
     renderCalculator();
 }
-function addPlate(weight) {
-    plateStack.push(weight);
-    plateStack.sort((a,b) => b - a);
-    renderCalculator();
-}
+function addPlate(weight) { plateStack.push(weight); plateStack.sort((a,b) => b - a); renderCalculator(); }
 function resetBar() { plateStack = []; renderCalculator(); }
 function calculateLoadout() {
     let target = parseFloat(document.getElementById('target-weight').value);
@@ -235,26 +285,49 @@ function renderCalculator() {
 }
 
 // --- HISTORY & EXPORT ---
-function renderHistory() {
-    const feed = document.getElementById('history-feed');
-    const history = JSON.parse(localStorage.getItem('yvns_tracker_v2')) || [];
-    feed.innerHTML = "";
-    if(history.length === 0) { feed.innerHTML = "<div class='empty-state'>No saved workouts found.</div>"; return; }
-    
-    history.slice().reverse().forEach((log, index) => {
-        let html = `<div class="history-card"><div class="h-header"><span>${log.date}</span><span class="h-del" onclick="delHist(${history.length-1-index})"><i class="fas fa-trash"></i></span></div><div class="h-body">`;
-        log.data.forEach(e => {
-            html += `<div class="h-row">${e.sets[0].name} (${e.sets[0].weight}x${e.sets[0].reps})`;
-            if(e.type==='Superset') html += ` + ${e.sets[1].name} (${e.sets[1].weight}x${e.sets[1].reps})`;
-            html += `</div>`;
-        });
-        html += `</div></div>`;
-        feed.innerHTML += html;
-    });
+function switchHistory(view) {
+    currentHistoryView = view;
+    document.getElementById('btn-hist-lifts').classList.toggle('active-bar', view === 'lifts');
+    document.getElementById('btn-hist-fuel').classList.toggle('active-bar', view === 'fuel');
+    renderHistory();
 }
 
-function delHist(idx) {
-    if(confirm("Delete this log?")) {
+function renderHistory() {
+    const feed = document.getElementById('history-feed');
+    feed.innerHTML = "";
+
+    if (currentHistoryView === 'lifts') {
+        const history = JSON.parse(localStorage.getItem('yvns_tracker_v2')) || [];
+        if(history.length === 0) { feed.innerHTML = "<div class='empty-state'>No saved workouts found.</div>"; return; }
+        
+        history.slice().reverse().forEach((log, index) => {
+            let html = `<div class="history-card"><div class="h-header"><span>${log.date}</span><span class="h-del" onclick="delHistLifts(${history.length-1-index})"><i class="fas fa-trash"></i></span></div><div class="h-body">`;
+            log.data.forEach(e => {
+                html += `<div class="h-row">${e.sets[0].name} (${e.sets[0].weight}x${e.sets[0].reps})`;
+                if(e.type==='Superset') html += ` + ${e.sets[1].name} (${e.sets[1].weight}x${e.sets[1].reps})`;
+                html += `</div>`;
+            });
+            html += `</div></div>`;
+            feed.innerHTML += html;
+        });
+    } else {
+        const history = JSON.parse(localStorage.getItem('yvns_macro_history')) || [];
+        if(history.length === 0) { feed.innerHTML = "<div class='empty-state'>No saved nutrition logs.</div>"; return; }
+        
+        history.slice().reverse().forEach((log, index) => {
+            let html = `<div class="history-card"><div class="h-header"><span>${log.date}</span><span class="h-del" onclick="delHistFuel(${history.length-1-index})"><i class="fas fa-trash"></i></span></div><div class="h-body">`;
+            html += `<div class="h-row" style="color:var(--c-blue); font-weight:bold; margin-bottom:8px;">TOTALS: ${log.totals.cals} Cal | ${log.totals.pro}P / ${log.totals.crb}C / ${log.totals.fat}F</div>`;
+            log.data.forEach(e => {
+                html += `<div class="h-row">- ${e.item}: ${e.cals}c | ${e.pro}p ${e.crb}c ${e.fat}f</div>`;
+            });
+            html += `</div></div>`;
+            feed.innerHTML += html;
+        });
+    }
+}
+
+function delHistLifts(idx) {
+    if(confirm("Delete this workout?")) {
         let h = JSON.parse(localStorage.getItem('yvns_tracker_v2'));
         h.splice(idx, 1);
         localStorage.setItem('yvns_tracker_v2', JSON.stringify(h));
@@ -262,9 +335,18 @@ function delHist(idx) {
     }
 }
 
+function delHistFuel(idx) {
+    if(confirm("Delete this day's macros?")) {
+        let h = JSON.parse(localStorage.getItem('yvns_macro_history'));
+        h.splice(idx, 1);
+        localStorage.setItem('yvns_macro_history', JSON.stringify(h));
+        renderHistory();
+    }
+}
+
 function copyForSheets() {
     const history = JSON.parse(localStorage.getItem('yvns_tracker_v2'));
-    if(!history) return alert("No History");
+    if(!history) return alert("No Lift History");
     let tsv = "Date\tCategory\tWorkout\tWeight\tReps\n";
     history.forEach(log => {
         log.data.forEach(e => {
@@ -278,18 +360,28 @@ function copyForSheets() {
     navigator.clipboard.writeText(tsv).then(() => alert("Copied! Paste into Sheets/Excel."));
 }
 
+function copyMacrosForSheets() {
+    const history = JSON.parse(localStorage.getItem('yvns_macro_history'));
+    if(!history) return alert("No Fuel History");
+    let tsv = "Date\tItem\tCalories\tProtein(g)\tCarbs(g)\tFats(g)\n";
+    history.forEach(log => {
+        log.data.forEach(m => {
+            tsv += `${log.date}\t${m.item}\t${m.cals}\t${m.pro}\t${m.crb}\t${m.fat}\n`;
+        });
+        tsv += `${log.date}\tDAY TOTAL\t${log.totals.cals}\t${log.totals.pro}\t${log.totals.crb}\t${log.totals.fat}\n`;
+    });
+    navigator.clipboard.writeText(tsv).then(() => alert("Copied Macros! Paste into Sheets/Excel."));
+}
+
 function exportCSV() {
     const history = JSON.parse(localStorage.getItem('yvns_tracker_v2'));
     if(!history) return alert("No History");
     let csv = "data:text/csv;charset=utf-8,Date,Category,Workout,Weight,Reps\n";
     history.forEach(log => {
         log.data.forEach(e => {
-            let row = "";
-            if(e.type === 'Superset') {
-                row = `${log.date},${e.equip},[SS] ${e.sets[0].name} ss ${e.sets[1].name},${e.sets[0].weight} / ${e.sets[1].weight},${e.sets[0].reps} / ${e.sets[1].reps}`;
-            } else {
-                row = `${log.date},${e.equip},${e.sets[0].name},${e.sets[0].weight},${e.sets[0].reps}`;
-            }
+            let row = e.type === 'Superset' 
+                ? `${log.date},${e.equip},[SS] ${e.sets[0].name} ss ${e.sets[1].name},${e.sets[0].weight} / ${e.sets[1].weight},${e.sets[0].reps} / ${e.sets[1].reps}` 
+                : `${log.date},${e.equip},${e.sets[0].name},${e.sets[0].weight},${e.sets[0].reps}`;
             csv += row + "\n";
         });
     });
@@ -301,20 +393,80 @@ function exportCSV() {
     document.body.removeChild(link);
 }
 
-function copyForText() {
-    const history = JSON.parse(localStorage.getItem('yvns_tracker_v2'));
-    if(!history) return alert("No History");
-    let txt = "=== YVNS LOG ===\n";
-    history.forEach(log => {
-        txt += `\n[ ${log.date} ]\n`;
-        log.data.forEach(e => {
-            if(e.type === 'Superset') txt += `[SS] ${e.sets[0].name} (${e.sets[0].weight}x${e.sets[0].reps}) + ${e.sets[1].name} (${e.sets[1].weight}x${e.sets[1].reps})\n`;
-            else txt += `${e.sets[0].name}: ${e.sets[0].weight}x${e.sets[0].reps}\n`;
-        });
-    });
-    navigator.clipboard.writeText(txt).then(() => alert("Copied Text Report."));
-}
-
-function wipeAllData() { if(confirm("Wipe all data?")) { localStorage.removeItem('yvns_tracker_v2'); location.reload(); } }
+function wipeAllData() { if(confirm("Wipe ALL Lifts and Macros?")) { localStorage.removeItem('yvns_tracker_v2'); localStorage.removeItem('yvns_macro_history'); location.reload(); } }
 function showExportPage() { document.getElementById('main-page').style.display = 'none'; document.getElementById('export-page').style.display = 'flex'; }
 function showMainPage() { document.getElementById('export-page').style.display = 'none'; document.getElementById('main-page').style.display = 'flex'; }
+
+// --- MODAL UTILITIES ---
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// --- REST TIMER ---
+let timerInterval;
+let timeRemaining = 0; // in seconds
+let timerRunning = false;
+
+function updateTimerDisplay() {
+    let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    let s = (timeRemaining % 60).toString().padStart(2, '0');
+    document.getElementById('timer-display').innerText = `${m}:${s}`;
+}
+
+function addTime(secs) {
+    timeRemaining += secs;
+    updateTimerDisplay();
+}
+
+function toggleTimer() {
+    const btn = document.getElementById('timer-start-btn');
+    if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.innerText = "START";
+        btn.style.background = "var(--c-blue)";
+    } else {
+        if (timeRemaining === 0) return;
+        timerRunning = true;
+        btn.innerText = "PAUSE";
+        btn.style.background = "#FF5252";
+        timerInterval = setInterval(() => {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                btn.innerText = "START";
+                btn.style.background = "var(--c-blue)";
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]); // Phone vibration
+                alert("TIME TO LIFT.");
+            }
+        }, 1000);
+    }
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timeRemaining = 0;
+    updateTimerDisplay();
+    const btn = document.getElementById('timer-start-btn');
+    btn.innerText = "START";
+    btn.style.background = "var(--c-blue)";
+}
+
+// --- MATH CALCULATOR ---
+let calcVal = "0";
+
+function calcPress(val) {
+    if (val === 'C') { calcVal = "0"; }
+    else if (val === 'DEL') { calcVal = calcVal.length > 1 ? calcVal.slice(0, -1) : "0"; }
+    else if (val === '=') {
+        try { calcVal = new Function('return ' + calcVal)().toString(); } 
+        catch(e) { calcVal = "ERR"; }
+    } else {
+        if (calcVal === "0" || calcVal === "ERR") calcVal = val;
+        else calcVal += val;
+    }
+    document.getElementById('calc-screen').innerText = calcVal;
+}
